@@ -1,0 +1,8 @@
+{
+  "name": "Remix Pendaftaran Pilot Project Bahasa Arab Al-Irsyad",
+  "description": "Formulir Pendaftaran Resmi Implementasi Pilot Project Pengajaran Bahasa Arab Bersertifikat - Sekretariat Bersama Al-Irsyad, 12 November 2026 di Pekalongan.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
