@@ -54,7 +54,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-neutral-50 text-neutral-800">
+    <div className="min-h-screen flex flex-col bg-slate-200/80 text-slate-800">
       {/* Top Header Navigation (hidden only during print media) */}
       <div className="no-print">
         <Header

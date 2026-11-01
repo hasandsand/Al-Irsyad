@@ -13,7 +13,7 @@ export const HeroLanding: React.FC<HeroLandingProps> = ({
   return (
     <div className="space-y-12 pb-16">
       {/* Hero Visual Section */}
-      <section className="relative overflow-hidden bg-radial from-emerald-900 via-emerald-950 to-neutral-950 text-white rounded-3xl mx-4 sm:mx-6 lg:mx-8 mt-6 shadow-2xl border border-emerald-700/30">
+      <section className="relative overflow-hidden bg-radial from-slate-800 via-slate-900 to-zinc-950 text-white rounded-3xl mx-4 sm:mx-6 lg:mx-8 mt-6 shadow-2xl border border-slate-700/60">
         {/* Subtle geometric pattern overlay */}
         <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#d4af37_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none" />
 
@@ -213,7 +213,7 @@ export const HeroLanding: React.FC<HeroLandingProps> = ({
 
       {/* Rundown & Informasi Pelaksanaan */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-emerald-900 text-white rounded-2xl p-6 sm:p-8 border border-emerald-700 shadow-md">
+        <div className="bg-slate-900 text-white rounded-2xl p-6 sm:p-8 border border-slate-700 shadow-md">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             <div className="lg:col-span-5 space-y-4">
               <span className="text-xs font-bold text-amber-300 uppercase tracking-widest">
@@ -222,13 +222,13 @@ export const HeroLanding: React.FC<HeroLandingProps> = ({
               <h3 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
                 Agenda Kegiatan 12 November 2026
               </h3>
-              <p className="text-xs sm:text-sm text-emerald-100 leading-relaxed">
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
                 Pertemuan ini menghadirkan perumusan implementasi pilot project, kurikulum standarisasi sertifikasi kompetensi bahasa Arab, serta alur monitoring pendampingan ke seluruh sekolah Al-Irsyad.
               </p>
               <div className="pt-2">
                 <button
                   onClick={onStartRegistration}
-                  className="px-5 py-2.5 text-xs font-bold text-emerald-950 bg-amber-300 hover:bg-amber-400 rounded-lg transition-colors inline-flex items-center gap-2"
+                  className="px-5 py-2.5 text-xs font-bold text-slate-950 bg-amber-300 hover:bg-amber-400 rounded-lg transition-colors inline-flex items-center gap-2 cursor-pointer"
                 >
                   <span>Daftar Sekarang</span>
                   <ArrowRight className="w-4 h-4" />
@@ -236,7 +236,7 @@ export const HeroLanding: React.FC<HeroLandingProps> = ({
               </div>
             </div>
 
-            <div className="lg:col-span-7 bg-emerald-950/70 p-5 rounded-xl border border-emerald-700/60 divide-y divide-emerald-800/80 text-xs sm:text-sm">
+            <div className="lg:col-span-7 bg-slate-950/80 p-5 rounded-xl border border-slate-700/80 divide-y divide-slate-800 text-xs sm:text-sm">
               <div className="py-2.5 flex items-start gap-4">
                 <span className="font-mono text-amber-300 font-semibold shrink-0">10.00 – 10.30</span>
                 <div>
