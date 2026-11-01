@@ -283,9 +283,34 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
           </div>
         )}
 
-        {/* Step Progress Indicator */}
-        <div className="pt-6">
-          <div className="grid grid-cols-4 gap-2 sm:gap-4">
+        {/* Dynamic Progress Bar & Stage Tracker */}
+        <div className="pt-6 space-y-3">
+          {/* Progress percentage & status caption */}
+          <div className="flex items-center justify-between text-xs">
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-neutral-900 uppercase tracking-wide">
+                Tahap {currentStep} dari 4:
+              </span>
+              <span className="text-emerald-800 font-semibold bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                {steps[currentStep - 1].title}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 font-mono font-bold text-emerald-800">
+              <span>{Math.round(((currentStep - 1) / 3) * 100)}%</span>
+              <span className="text-neutral-400 font-normal">Selesai</span>
+            </div>
+          </div>
+
+          {/* Continuous Progress Bar Track */}
+          <div className="w-full bg-neutral-200 h-2.5 rounded-full overflow-hidden shadow-inner p-0.5">
+            <div 
+              className="bg-gradient-to-r from-emerald-600 via-amber-500 to-emerald-700 h-full rounded-full transition-all duration-500 ease-out"
+              style={{ width: `${Math.max(10, ((currentStep - 1) / 3) * 100)}%` }}
+            />
+          </div>
+
+          {/* 4 Interactive Step Buttons */}
+          <div className="grid grid-cols-4 gap-2 sm:gap-3 pt-1">
             {steps.map(step => {
               const isActive = currentStep === step.num;
               const isPast = currentStep > step.num;
@@ -297,35 +322,37 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
                     // allow clicking past steps or current
                     if (isPast) setCurrentStep(step.num);
                   }}
-                  className={`text-left focus:outline-hidden transition-all ${
-                    isPast ? 'cursor-pointer' : 'cursor-default'
+                  className={`text-left focus:outline-hidden transition-all p-2 rounded-xl border ${
+                    isActive 
+                      ? 'border-emerald-700 bg-emerald-50/60 shadow-xs ring-1 ring-emerald-700/30' 
+                      : isPast 
+                      ? 'border-emerald-200 bg-emerald-50/30 cursor-pointer hover:bg-emerald-50' 
+                      : 'border-neutral-200/70 bg-neutral-50/50 cursor-default opacity-70'
                   }`}
                 >
-                  <div className="flex items-center gap-2 mb-1.5">
+                  <div className="flex items-center gap-2 mb-1">
                     <div
-                      className={`w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center transition-colors ${
+                      className={`w-5 h-5 rounded-full text-[11px] font-bold flex items-center justify-center transition-colors shrink-0 ${
                         isActive
                           ? 'bg-emerald-800 text-white shadow-xs'
                           : isPast
                           ? 'bg-emerald-600 text-white'
-                          : 'bg-neutral-100 text-neutral-400 border border-neutral-200'
+                          : 'bg-neutral-200 text-neutral-500'
                       }`}
                     >
                       {isPast ? '✓' : step.num}
                     </div>
                     <span
-                      className={`text-xs font-medium hidden sm:inline whitespace-nowrap ${
-                        isActive ? 'text-emerald-900 font-bold' : isPast ? 'text-emerald-700' : 'text-neutral-400'
+                      className={`text-[11px] sm:text-xs font-semibold truncate ${
+                        isActive ? 'text-emerald-950 font-bold' : isPast ? 'text-emerald-800' : 'text-neutral-500'
                       }`}
                     >
                       {step.title}
                     </span>
                   </div>
-                  <div
-                    className={`h-1.5 rounded-full transition-colors ${
-                      isActive ? 'bg-amber-500' : isPast ? 'bg-emerald-700' : 'bg-neutral-100'
-                    }`}
-                  />
+                  <div className="text-[10px] text-neutral-400 font-medium hidden sm:block">
+                    {isPast ? 'Selesai diisi' : isActive ? 'Sedang diisi...' : 'Belum diisi'}
+                  </div>
                 </button>
               );
             })}

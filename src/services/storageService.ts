@@ -108,23 +108,47 @@ class StorageService {
   async getRegistrations(): Promise<RegistrationRecord[]> {
     let records: RegistrationRecord[] = [];
 
-    // Try server first
+    // 1. Ambil dari server
     try {
       const res = await fetch('/api/registrations');
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data)) {
-          records = data;
-          // Sync to localStorage
-          localStorage.setItem(STORAGE_KEY_REGISTRATIONS, JSON.stringify(records));
-          return records;
+          // Ambil juga dari localStorage jika ada data lokal yang belum tersinkron
+          let localRecords: RegistrationRecord[] = [];
+          try {
+            const stored = localStorage.getItem(STORAGE_KEY_REGISTRATIONS);
+            if (stored) localRecords = JSON.parse(stored);
+          } catch {}
+
+          // Gabungkan data server dan data lokal (hindari duplikasi berdasarkan ID)
+          const map = new Map<string, RegistrationRecord>();
+          data.forEach(r => map.set(r.id, r));
+          localRecords.forEach(r => {
+            if (!map.has(r.id)) {
+              map.set(r.id, r);
+              // Kirim ke server jika belum ada di server
+              fetch('/api/registrations', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(r)
+              }).catch(() => {});
+            }
+          });
+
+          const combined = Array.from(map.values()).sort((a, b) => 
+            new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+          );
+
+          localStorage.setItem(STORAGE_KEY_REGISTRATIONS, JSON.stringify(combined));
+          return combined;
         }
       }
     } catch {
       // Server not reachable, proceed to local storage
     }
 
-    // Fallback to local storage
+    // 2. Fallback to local storage jika offline / static hosting (Vercel tanpa backend server)
     try {
       const stored = localStorage.getItem(STORAGE_KEY_REGISTRATIONS);
       if (stored) {
