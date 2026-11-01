@@ -176,17 +176,18 @@ class StorageService {
       status: 'Terkonfirmasi'
     };
 
-    // Update local storage immediately
-    const updated = [record, ...existing];
+    // 1. Update local storage immediately & reliably
     try {
+      const currentLocal = JSON.parse(localStorage.getItem(STORAGE_KEY_REGISTRATIONS) || '[]');
+      const updated = [record, ...currentLocal.filter((r: any) => r.id !== record.id)];
       localStorage.setItem(STORAGE_KEY_REGISTRATIONS, JSON.stringify(updated));
-      // Clear draft on successful submit
       this.clearDraft();
     } catch (e) {
       console.warn('Local storage write error:', e);
     }
 
-    // Try sending to server
+    // 2. Send to server API
+    let returnedRecord = record;
     try {
       const res = await fetch('/api/registrations', {
         method: 'POST',
@@ -195,13 +196,23 @@ class StorageService {
       });
       if (res.ok) {
         const serverRecord = await res.json();
-        return serverRecord;
+        returnedRecord = serverRecord;
       }
-    } catch {
-      // offline is fine, already in local storage
+    } catch (e) {
+      console.warn('Server save failed, kept in local storage:', e);
     }
 
-    // Optional webhook integration (Google Sheets or Zapier/Make)
+    // Record initial registration confirmation email
+    this.recordSimulatedEmail({
+      to: returnedRecord.namaPic + ' <' + (returnedRecord.namaPic.toLowerCase().replace(/\s+/g, '.') + '@sekolah.alirsyad.sch.id') + '>',
+      subject: `[Al-Irsyad] Konfirmasi Bukti Pendaftaran Resmi: ${returnedRecord.nomorPendaftaran}`,
+      nomorPendaftaran: returnedRecord.nomorPendaftaran,
+      status: 'Pendaftaran Baru',
+      schoolName: returnedRecord.namaSekolah,
+      timestamp: new Date().toLocaleTimeString('id-ID') + ' WIB'
+    });
+
+    // 3. Optional webhook integration (Google Sheets or Zapier/Make)
     try {
       const settings = await this.getSettings();
       if (settings.googleSheetsWebhookUrl && settings.googleSheetsWebhookUrl.trim()) {
@@ -209,14 +220,14 @@ class StorageService {
           method: 'POST',
           mode: 'no-cors',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(record)
+          body: JSON.stringify(returnedRecord)
         }).catch(() => {});
       }
     } catch {
       // non-blocking
     }
 
-    return record;
+    return returnedRecord;
   }
 
   // Delete registration (admin only)
@@ -236,6 +247,59 @@ class StorageService {
     }
 
     return true;
+  }
+
+  // Update status and simulate email notification
+  async updateRegistrationStatus(id: string, newStatus: 'Terkonfirmasi' | 'Menunggu Konfirmasi' | 'Hadir'): Promise<RegistrationRecord | null> {
+    const existing = await this.getRegistrations();
+    const idx = existing.findIndex(r => r.id === id);
+    if (idx === -1) return null;
+
+    const updatedRecord = { ...existing[idx], status: newStatus };
+    existing[idx] = updatedRecord;
+
+    try {
+      localStorage.setItem(STORAGE_KEY_REGISTRATIONS, JSON.stringify(existing));
+    } catch (e) {
+      console.warn(e);
+    }
+
+    try {
+      await fetch('/api/registrations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedRecord)
+      });
+    } catch {}
+
+    // Record simulated email dispatch in audit history
+    this.recordSimulatedEmail({
+      to: updatedRecord.namaPic + ' <' + (updatedRecord.namaPic.toLowerCase().replace(/\s+/g, '.') + '@sekolah.alirsyad.sch.id') + '>',
+      subject: `[Al-Irsyad] Pembaruan Status Pendaftaran: ${updatedRecord.nomorPendaftaran} (${newStatus})`,
+      nomorPendaftaran: updatedRecord.nomorPendaftaran,
+      status: newStatus,
+      schoolName: updatedRecord.namaSekolah,
+      timestamp: new Date().toLocaleTimeString('id-ID') + ' WIB'
+    });
+
+    return updatedRecord;
+  }
+
+  // Simulated email dispatch tracker
+  recordSimulatedEmail(info: { to: string; subject: string; nomorPendaftaran: string; status: string; schoolName: string; timestamp: string }) {
+    try {
+      const logs = JSON.parse(localStorage.getItem('alirsyad_simulated_emails') || '[]');
+      logs.unshift({ id: `email_${Date.now()}`, ...info });
+      localStorage.setItem('alirsyad_simulated_emails', JSON.stringify(logs.slice(0, 20)));
+    } catch {}
+  }
+
+  getSimulatedEmailLogs(): any[] {
+    try {
+      return JSON.parse(localStorage.getItem('alirsyad_simulated_emails') || '[]');
+    } catch {
+      return [];
+    }
   }
 
   // Get statistics for admin dashboard

@@ -20,7 +20,9 @@ import {
   Send,
   MessageCircle,
   FileSpreadsheet,
-  BarChart3
+  BarChart3,
+  Mail,
+  Bell
 } from 'lucide-react';
 import { RegistrationRecord, AdminStats, AppSettings } from '../types';
 import { storageService, sanitizeWhatsappNumber } from '../services/storageService';
@@ -71,12 +73,33 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     googleSheetsWebhookUrl: ''
   });
   const [settingsSavedToast, setSettingsSavedToast] = useState(false);
+  const [emailModalOpen, setEmailModalOpen] = useState(false);
+  const [emailLogs, setEmailLogs] = useState<any[]>([]);
+  const [statusUpdateToast, setStatusUpdateToast] = useState<string | null>(null);
+
+  const loadEmailLogs = () => {
+    setEmailLogs(storageService.getSimulatedEmailLogs());
+  };
+
+  const handleUpdateStatus = async (record: RegistrationRecord, newStatus: 'Terkonfirmasi' | 'Menunggu Konfirmasi' | 'Hadir') => {
+    const updated = await storageService.updateRegistrationStatus(record.id, newStatus);
+    if (updated) {
+      setRecords(prev => prev.map(r => r.id === record.id ? updated : r));
+      if (selectedRecord?.id === record.id) {
+        setSelectedRecord(updated);
+      }
+      setStatusUpdateToast(`Status ${record.nomorPendaftaran} diubah ke "${newStatus}". Simulasi email otomatis terkirim ke PIC!`);
+      loadEmailLogs();
+      setTimeout(() => setStatusUpdateToast(null), 4000);
+    }
+  };
 
   const fetchRecords = async () => {
     setIsLoading(true);
     try {
       const data = await storageService.getRegistrations();
       setRecords(data);
+      loadEmailLogs();
     } catch (e) {
       console.error(e);
     } finally {
@@ -161,16 +184,29 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setTimeout(() => setSettingsSavedToast(false), 2500);
   };
 
-  const handleExportCsv = () => {
+  const [exportToast, setExportToast] = useState<string | null>(null);
+
+  const handleExportCsv = (format: 'csv' | 'excel' = 'csv') => {
+    if (filteredRecords.length === 0) {
+      alert('Tidak ada data pendaftar untuk diekspor.');
+      return;
+    }
     const csvContent = storageService.exportToCsv(filteredRecords);
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const mimeType = format === 'excel' ? 'application/vnd.ms-excel;charset=utf-8;' : 'text/csv;charset=utf-8;';
+    const ext = format === 'excel' ? 'xls' : 'csv';
+    const blob = new Blob([csvContent], { type: mimeType });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `Pendaftaran_Pilot_Project_Bahasa_Arab_Al-Irsyad_${new Date().toISOString().slice(0, 10)}.csv`);
+    const dateStr = new Date().toISOString().slice(0, 10);
+    link.setAttribute('download', `Pendaftaran_Pilot_Project_Bahasa_Arab_Al-Irsyad_${dateStr}.${ext}`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    setExportToast(`Berhasil mengekspor ${filteredRecords.length} data pendaftar ke file .${ext.toUpperCase()}`);
+    setTimeout(() => setExportToast(null), 3000);
   };
 
   const handlePrintTable = () => {
@@ -328,6 +364,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <BarChart3 className="w-4 h-4 text-emerald-700" />
             <span className="hidden sm:inline">{showCharts ? 'Sembunyikan Grafik' : 'Statistik Visual'}</span>
             <span className="sm:hidden">Grafik</span>
+          </button>
+
+          <button
+            onClick={() => {
+              loadEmailLogs();
+              setEmailModalOpen(true);
+            }}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl border border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-50 transition-all cursor-pointer relative"
+            title="Lihat Log Simulasi Email Otomatis"
+          >
+            <Mail className="w-4 h-4 text-emerald-800" />
+            <span className="hidden sm:inline">Log Notifikasi Email</span>
+            <span className="sm:hidden">Email</span>
+            {emailLogs.length > 0 && (
+              <span className="w-2 h-2 rounded-full bg-emerald-500 absolute -top-1 -right-1" />
+            )}
           </button>
 
           <button
@@ -497,14 +549,24 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <span>{sortOrder === 'desc' ? 'Terbaru' : 'Terlama'}</span>
               </button>
 
-              {/* Export to CSV / Excel */}
+              {/* Export to Excel (.XLS) */}
               <button
-                onClick={handleExportCsv}
+                onClick={() => handleExportCsv('excel')}
                 className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-white bg-emerald-800 hover:bg-emerald-900 rounded-xl transition-all shadow-xs cursor-pointer"
-                title="Unduh seluruh baris ke berkas CSV / Excel"
+                title="Unduh seluruh data pendaftar dalam format file Excel (.xls)"
               >
-                <Download className="w-3.5 h-3.5" />
-                <span>Export CSV/Excel</span>
+                <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-200" />
+                <span>Export Excel</span>
+              </button>
+
+              {/* Export to CSV */}
+              <button
+                onClick={() => handleExportCsv('csv')}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-emerald-950 bg-emerald-100 hover:bg-emerald-200 border border-emerald-300 rounded-xl transition-all shadow-xs cursor-pointer"
+                title="Unduh format CSV standar (UTF-8)"
+              >
+                <Download className="w-3.5 h-3.5 text-emerald-800" />
+                <span>Export CSV</span>
               </button>
 
               {/* Print Data Table */}
@@ -519,6 +581,33 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </div>
           </div>
 
+          {/* Export Notification Toast */}
+          {exportToast && (
+            <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-300 text-xs font-semibold text-emerald-900 flex items-center gap-2 animate-in fade-in duration-200">
+              <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>{exportToast}</span>
+            </div>
+          )}
+
+          {/* Status Update & Email Notification Toast */}
+          {statusUpdateToast && (
+            <div className="p-3.5 rounded-xl bg-blue-50 border border-blue-300 text-xs font-semibold text-blue-900 flex items-center justify-between gap-3 animate-in fade-in duration-200 shadow-xs">
+              <div className="flex items-center gap-2.5">
+                <Mail className="w-4 h-4 text-blue-700 shrink-0 animate-pulse" />
+                <span>{statusUpdateToast}</span>
+              </div>
+              <button
+                onClick={() => {
+                  loadEmailLogs();
+                  setEmailModalOpen(true);
+                }}
+                className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[11px] font-bold shrink-0 transition-colors cursor-pointer"
+              >
+                Buka Log Email
+              </button>
+            </div>
+          )}
+
           {/* TABLE (Requirement 14) */}
           <div className="overflow-x-auto border border-neutral-200 rounded-xl">
             <table className="w-full text-left text-xs border-collapse">
@@ -531,6 +620,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <th className="py-3 px-3">PIC (Kontak)</th>
                   <th className="py-3 px-3 text-center">Jumlah Peserta</th>
                   <th className="py-3 px-3">Status Kesiapan</th>
+                  <th className="py-3 px-3 text-center">Status & Email</th>
                   <th className="py-3 px-3">Timestamp</th>
                   <th className="py-3 px-3 text-center no-print">Aksi</th>
                 </tr>
@@ -592,6 +682,24 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         }`}>
                           {r.statusKesiapan || '-'}
                         </span>
+                      </td>
+                      <td className="py-3 px-3 text-center whitespace-nowrap">
+                        <select
+                          value={r.status || 'Terkonfirmasi'}
+                          onChange={e => handleUpdateStatus(r, e.target.value as any)}
+                          className={`text-[11px] font-bold px-2.5 py-1 rounded-lg border cursor-pointer focus:outline-hidden ${
+                            r.status === 'Hadir'
+                              ? 'bg-blue-50 text-blue-800 border-blue-300'
+                              : r.status === 'Menunggu Konfirmasi'
+                              ? 'bg-amber-50 text-amber-800 border-amber-300'
+                              : 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                          }`}
+                          title="Ubah status & otomatis kirim notifikasi email ke PIC"
+                        >
+                          <option value="Terkonfirmasi">Terkonfirmasi</option>
+                          <option value="Menunggu Konfirmasi">Menunggu Konfirmasi</option>
+                          <option value="Hadir">Hadir</option>
+                        </select>
                       </td>
                       <td className="py-3 px-3 text-[11px] text-neutral-500 whitespace-nowrap font-mono">
                         {r.formattedTimestamp || new Date(r.timestamp).toLocaleDateString('id-ID')}
@@ -883,6 +991,85 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1.5"
               >
                 {isDeleting ? 'Menghapus...' : 'Ya, Hapus Data'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* SIMULATED EMAIL NOTIFICATION LOG MODAL */}
+      {emailModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-neutral-200 space-y-5 animate-in fade-in duration-200">
+            <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center">
+                  <Mail className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-neutral-900">
+                    Log Simulasi Notifikasi Email Otomatis
+                  </h3>
+                  <p className="text-xs text-neutral-500">
+                    Riwayat email konfirmasi pendaftaran baru dan pembaruan status pendaftar.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setEmailModalOpen(false)}
+                className="text-neutral-400 hover:text-neutral-700 p-1.5 rounded-lg hover:bg-neutral-100 transition-colors cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="max-h-[60vh] overflow-y-auto space-y-3 pr-1">
+              {emailLogs.length === 0 ? (
+                <div className="text-center py-10 text-neutral-400 text-xs">
+                  <Mail className="w-8 h-8 mx-auto mb-2 opacity-40" />
+                  <p className="font-semibold text-neutral-600">Belum ada aktivitas email terkirim.</p>
+                  <p className="mt-0.5">Email otomatis disimulasikan setiap pendaftar baru mendaftar atau saat admin mengubah status di tabel.</p>
+                </div>
+              ) : (
+                emailLogs.map((log: any) => (
+                  <div key={log.id} className="p-4 rounded-xl border border-neutral-200 bg-neutral-50/70 hover:bg-blue-50/30 transition-all text-xs space-y-1.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-bold text-emerald-900 bg-emerald-100 px-2 py-0.5 rounded-md">
+                          {log.nomorPendaftaran}
+                        </span>
+                        <span className="font-semibold text-neutral-900">{log.schoolName}</span>
+                      </div>
+                      <span className="text-[11px] text-neutral-400 font-mono">{log.timestamp}</span>
+                    </div>
+
+                    <div className="font-semibold text-neutral-800 text-[13px] pt-1">
+                      {log.subject}
+                    </div>
+
+                    <div className="flex items-center justify-between text-neutral-600 text-[11px] pt-1 border-t border-neutral-200/60">
+                      <div>
+                        Penerima (PIC): <span className="font-mono text-neutral-800">{log.to}</span>
+                      </div>
+                      <span className="inline-flex items-center gap-1 font-bold text-blue-700">
+                        <CheckCircle className="w-3.5 h-3.5 text-blue-600" />
+                        <span>Terkirim (Simulasi)</span>
+                      </span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div className="flex justify-between items-center pt-2 border-t border-neutral-100">
+              <span className="text-[11px] text-neutral-500">
+                Total {emailLogs.length} notifikasi email tercatat.
+              </span>
+              <button
+                onClick={() => setEmailModalOpen(false)}
+                className="px-4 py-2 bg-neutral-900 text-white rounded-xl text-xs font-bold hover:bg-neutral-800 transition-colors cursor-pointer"
+              >
+                Tutup
               </button>
             </div>
           </div>
