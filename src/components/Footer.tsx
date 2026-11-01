@@ -30,7 +30,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenCheckStatus })
               </div>
             </div>
             <p className="text-xs text-neutral-400 leading-relaxed max-w-sm">
-              Implementasi Pilot Project Pengajaran Bahasa Arab Bersertifikat bagi Satuan Pendidikan di lingkungan Yayasan Al-Irsyad se-Indonesia.
+              Implementasi Pilot Project Pengajaran Bahasa Arab bagi Satuan Pendidikan di lingkungan Yayasan Al-Irsyad se-Indonesia.
             </p>
             <div className="text-xs text-amber-400/90 font-arabic pt-1 select-none">
               اللغة العربية لغة القرآن والعلم

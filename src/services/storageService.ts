@@ -6,7 +6,7 @@ const STORAGE_KEY_DRAFT = 'alirsyad_form_draft_v1';
 
 export const DEFAULT_SETTINGS: AppSettings = {
   panitiaWhatsapp: '6281225577889', // Default contact center Sekretariat Bersama Al-Irsyad (dapat diubah di Admin)
-  eventTitle: 'IMPLEMENTASI PILOT PROJECT PENGAJARAN BAHASA ARAB BERSERTIFIKAT',
+  eventTitle: 'IMPLEMENTASI PILOT PROJECT PENGAJARAN BAHASA ARAB',
   eventDate: 'Kamis, 12 November 2026',
   eventTime: '10.00–16.00 WIB',
   eventLocation: 'Pekalongan',
@@ -290,7 +290,7 @@ class StorageService {
   createPanitiaWhatsappUrl(record: RegistrationRecord, panitiaNumber: string): string {
     const targetPhone = sanitizeWhatsappNumber(panitiaNumber);
     const yayasanSekolah = `${record.namaYayasan} - ${record.namaSekolah}`;
-    const text = `Assalamu'alaikum. Kami dari ${yayasanSekolah} telah melakukan pendaftaran kegiatan Implementasi Pilot Project Pengajaran Bahasa Arab Bersertifikat yang diselenggarakan oleh Sekretariat Bersama Al-Irsyad pada 12 November 2026 di Pekalongan.\n\nNomor Pendaftaran: ${record.nomorPendaftaran}\n\nTerima kasih.`;
+    const text = `Assalamu'alaikum. Kami dari ${yayasanSekolah} telah melakukan pendaftaran kegiatan Implementasi Pilot Project Pengajaran Bahasa Arab yang diselenggarakan oleh Sekretariat Bersama Al-Irsyad pada 12 November 2026 di Pekalongan.\n\nNomor Pendaftaran: ${record.nomorPendaftaran}\n\nTerima kasih.`;
 
     return `https://wa.me/${targetPhone}?text=${encodeURIComponent(text)}`;
   }
@@ -302,7 +302,7 @@ class StorageService {
       `Assalamu'alaikum Wr. Wb.\n` +
       `Yth. Bapak/Ibu ${record.namaPic} (PIC)\n` +
       `${record.namaSekolah} (${record.namaYayasan})\n\n` +
-      `Alhamdulillah, pendaftaran delegasi sekolah Anda untuk kegiatan *Implementasi Pilot Project Pengajaran Bahasa Arab Bersertifikat* telah kami terima dengan sukses.\n\n` +
+      `Alhamdulillah, pendaftaran delegasi sekolah Anda untuk kegiatan *Implementasi Pilot Project Pengajaran Bahasa Arab* telah kami terima dengan sukses.\n\n` +
       `📋 *DETAIL REGISTRASI:*\n` +
       `• No. Pendaftaran: *${record.nomorPendaftaran}*\n` +
       `• Tanggal: Kamis, 12 November 2026\n` +

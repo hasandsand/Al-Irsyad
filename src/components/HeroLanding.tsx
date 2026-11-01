@@ -42,7 +42,7 @@ export const HeroLanding: React.FC<HeroLandingProps> = ({
                 FORMULIR PENDAFTARAN RESMI
               </span>
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white tracking-tight leading-tight text-balance">
-                IMPLEMENTASI PILOT PROJECT PENGAJARAN BAHASA ARAB BERSERTIFIKAT
+                IMPLEMENTASI PILOT PROJECT PENGAJARAN BAHASA ARAB
               </h1>
             </div>
 
@@ -81,7 +81,7 @@ export const HeroLanding: React.FC<HeroLandingProps> = ({
 
             {/* Official Description */}
             <p className="text-emerald-100/90 text-sm sm:text-base leading-relaxed border-l-2 border-amber-500/80 pl-4 py-1">
-              "Formulir ini digunakan untuk melakukan konfirmasi dan pendataan peserta kegiatan Implementasi Pilot Project Pengajaran Bahasa Arab Bersertifikat. Mohon mengisi data dengan lengkap dan benar."
+              "Formulir ini digunakan untuk melakukan konfirmasi dan pendataan peserta kegiatan Implementasi Pilot Project Pengajaran Bahasa Arab. Mohon mengisi data dengan lengkap dan benar."
             </p>
 
             {/* CTAs */}

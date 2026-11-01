@@ -74,7 +74,13 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [draftSavedToast, setDraftSavedToast] = useState<boolean>(false);
+  const [isShaking, setIsShaking] = useState<boolean>(false);
   const formTopRef = useRef<HTMLDivElement>(null);
+
+  const triggerShake = () => {
+    setIsShaking(true);
+    setTimeout(() => setIsShaking(false), 500);
+  };
 
   // Auto-save draft as user edits
   useEffect(() => {
@@ -177,6 +183,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length > 0) {
+      triggerShake();
       scrollToTop();
       return false;
     }
@@ -188,6 +195,8 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
     if (validateStep(currentStep)) {
       setCurrentStep(prev => Math.min(prev + 1, 4));
       scrollToTop();
+    } else {
+      triggerShake();
     }
   };
 
@@ -360,10 +369,12 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
         </div>
       </div>
 
-      {/* Global Error Notice */}
+      {/* Global Error Notice with Shake Animation */}
       {Object.keys(errors).length > 0 && (
-        <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-800 text-xs sm:text-sm flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+        <div className={`p-4 rounded-xl bg-red-50 border border-red-300 text-red-800 text-xs sm:text-sm flex items-start gap-3 transition-all ${
+          isShaking ? 'animate-shake ring-4 ring-red-400/40 shadow-lg' : ''
+        }`}>
+          <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5 animate-bounce" />
           <div>
             <div className="font-bold">Mohon periksa kembali isian formulir:</div>
             <ul className="list-disc list-inside mt-1 space-y-0.5 text-red-700">
@@ -379,7 +390,9 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* STEP 1: IDENTITAS YAYASAN/SEKOLAH */}
         {currentStep === 1 && (
-          <div className="bg-white rounded-2xl border border-neutral-200/90 p-6 sm:p-8 shadow-xs space-y-6">
+          <div className={`bg-white rounded-2xl border border-neutral-200/90 p-6 sm:p-8 shadow-xs space-y-6 transition-all ${
+            isShaking ? 'animate-shake ring-2 ring-red-400' : ''
+          }`}>
             <div className="flex items-center gap-3 pb-3 border-b border-neutral-100">
               <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-800 flex items-center justify-center font-bold">
                 <Building2 className="w-5 h-5" />

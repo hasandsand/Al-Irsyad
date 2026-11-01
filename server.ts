@@ -26,7 +26,7 @@ if (!fs.existsSync(REGISTRATIONS_FILE)) {
 
 const DEFAULT_SETTINGS = {
   panitiaWhatsapp: '6281225577889',
-  eventTitle: 'IMPLEMENTASI PILOT PROJECT PENGAJARAN BAHASA ARAB BERSERTIFIKAT',
+  eventTitle: 'IMPLEMENTASI PILOT PROJECT PENGAJARAN BAHASA ARAB',
   eventDate: 'Kamis, 12 November 2026',
   eventTime: '10.00–16.00 WIB',
   eventLocation: 'Pekalongan',
